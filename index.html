@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Prompt Master Challenge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #08080d;
+    --bg-grid: rgba(217, 70, 239, 0.05);
+    --surface: #11111a;
+    --surface-2: #16161f;
+    --border: rgba(255, 255, 255, 0.07);
+    --border-glow: rgba(217, 70, 239, 0.35);
+    --text: #f4f4f6;
+    --text-2: #a1a1ad;
+    --text-3: #65656f;
+    --neon: #d946ef;
+    --neon-2: #a855f7;
+    --cyan: #22d3ee;
+    --success: #34d399;
+    --info: #818cf8;
+    --warning: #fbbf24;
+    --danger: #fb7185;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: "Space Grotesk", system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--bg-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 35%, transparent 80%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: "";
+    position: fixed;
+    top: -25%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 900px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.18), transparent 60%);
+    filter: blur(40px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 56px 24px 80px;
+  }
+
+  /* Header */
+  .header { text-align: center; margin-bottom: 30px; }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--neon);
+    padding: 6px 14px;
+    border: 1px solid var(--border-glow);
+    border-radius: 999px;
+    background: rgba(217, 70, 239, 0.06);
+    margin-bottom: 20px;
+  }
+  .eyebrow .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--neon);
+    box-shadow: 0 0 10px var(--neon);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  h1 {
+    font-size: clamp(34px, 7vw, 64px);
+    font-weight: 700;
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+  h1 .grad {
+    background: linear-gradient(120deg, var(--neon), var(--neon-2) 50%, var(--cyan));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 22px rgba(217, 70, 239, 0.45));
+  }
+  .subtitle {
+    margin-top: 14px;
+    font-size: 15px;
+    color: var(--text-2);
+  }
+
+  /* Leaderboard */
+  .leaderboard {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin: 28px 0 36px;
+    position: relative;
+    overflow: hidden;
+  }
+  .leaderboard::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: linear-gradient(var(--neon), var(--cyan));
+  }
+  .leaderboard .lb-left {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 12px; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--text-2);
+  }
+  .leaderboard .lb-left svg { color: var(--warning); }
+  .lb-score {
+    font-family: "Space Mono", monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .lb-score.empty { color: var(--text-3); font-weight: 400; }
+  .lb-rank { color: var(--neon); }
+
+  /* Step label */
+  .step-label {
+    display: flex; align-items: center; gap: 9px;
+    font-size: 12px; font-weight: 600;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--neon);
+    margin-bottom: 16px;
+  }
+  .step-label .ring {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--neon);
+    box-shadow: 0 0 0 3px rgba(217, 70, 239, 0.18);
+  }
+
+  /* Steps */
+  .step { display: none; }
+  .step.active { display: block; animation: stepIn 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+  @keyframes stepIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Missions grid */
+  .missions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+  }
+  .mission {
+    cursor: pointer;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.25s cubic-bezier(0.16,1,0.3,1), border-color 0.25s, box-shadow 0.25s;
+    opacity: 0;
+    transform: translateY(16px);
+    animation: cardIn 0.5s cubic-bezier(0.16,1,0.3,1) forwards;
+  }
+  @keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
+  .mission::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(400px circle at var(--mx, 50%) var(--my, 0%), rgba(217,70,239,0.10), transparent 45%);
+    opacity: 0;
+    transition: opacity 0.25s;
+    pointer-events: none;
+  }
+  .mission:hover {
+    transform: translateY(-4px);
+    border-color: var(--border-glow);
+    box-shadow: 0 10px 40px -12px rgba(217, 70, 239, 0.4);
+  }
+  .mission:hover::after { opacity: 1; }
+  .mission:focus-visible { outline: 2px solid var(--neon); outline-offset: 2px; }
+  .mission .m-icon {
+    width: 46px; height: 46px;
+    display: grid; place-items: center;
+    border-radius: 12px;
+    background: rgba(217, 70, 239, 0.10);
+    border: 1px solid rgba(217, 70, 239, 0.22);
+    color: var(--neon);
+    margin-bottom: 14px;
+  }
+  .mission .m-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+  .mission .m-goal { font-size: 13px; line-height: 1.55; color: var(--text-2); }
+  .mission .m-go {
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 14px;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--neon);
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity 0.25s, transform 0.25s;
+  }
+  .mission:hover .m-go { opacity: 1; transform: translateX(0); }
+
+  /* Write step */
+  .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .mission-card {
+    display: flex; gap: 14px;
+    background: linear-gradient(135deg, rgba(168,85,247,0.10), rgba(34,211,238,0.05));
+    border: 1px solid rgba(168, 85, 247, 0.25);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-bottom: 18px;
+  }
+  .mission-card .mc-icon {
+    flex-shrink: 0;
+    width: 44px; height: 44px;
+    display: grid; place-items: center;
+    border-radius: 12px;
+    background: rgba(217, 70, 239, 0.14);
+    color: var(--neon);
+  }
+  .mission-card .mc-title { font-size: 16px; font-weight: 600; }
+  .mission-card .mc-goal { font-size: 13px; line-height: 1.55; color: var(--text-2); margin-top: 4px; }
+
+  textarea {
+    width: 100%;
+    min-height: 168px;
+    resize: vertical;
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  textarea::placeholder { color: var(--text-3); }
+  textarea:focus {
+    outline: none;
+    border-color: var(--border-glow);
+    box-shadow: 0 0 0 4px rgba(217, 70, 239, 0.10);
+  }
+  textarea.error {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 4px rgba(251, 113, 133, 0.12);
+    animation: shake 0.4s;
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+  .write-foot {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 14px; gap: 12px; flex-wrap: wrap;
+  }
+  .wordcount {
+    font-family: "Space Mono", monospace;
+    font-size: 12px;
+    color: var(--text-3);
+  }
+  .err-hint { color: var(--danger); }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: inherit; font-size: 14px; font-weight: 600;
+    cursor: pointer;
+    border-radius: 12px;
+    padding: 11px 20px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
+    transition: transform 0.15s, border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  }
+  .btn:hover { transform: translateY(-2px); border-color: var(--border-glow); }
+  .btn:active { transform: translateY(0); }
+  .btn-ghost { padding: 8px 14px; font-size: 13px; }
+  .btn-primary {
+    border: none;
+    color: #fff;
+    background: linear-gradient(120deg, var(--neon), var(--neon-2));
+    box-shadow: 0 8px 30px -8px rgba(217, 70, 239, 0.7);
+  }
+  .btn-primary:hover { box-shadow: 0 10px 38px -8px rgba(217, 70, 239, 0.9); }
+
+  /* Result */
+  .result-head { text-align: center; margin: 8px 0 30px; }
+  .result-head .rh-label {
+    font-size: 12px; font-weight: 600; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--text-2);
+  }
+  .bigscore {
+    font-family: "Space Mono", monospace;
+    font-size: clamp(72px, 16vw, 124px);
+    font-weight: 700;
+    line-height: 1;
+    margin: 6px 0;
+    background: linear-gradient(120deg, var(--neon), var(--neon-2) 55%, var(--cyan));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 30px rgba(217, 70, 239, 0.4));
+  }
+  .bigscore .pct { font-size: 0.4em; color: var(--text-3); -webkit-text-fill-color: var(--text-3); }
+  .rank {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 16px; font-weight: 600;
+    padding: 7px 18px;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+    background: rgba(255,255,255,0.02);
+  }
+
+  .breakdown { display: flex; flex-direction: column; gap: 10px; margin-bottom: 26px; }
+  .crit {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 13px 16px;
+    opacity: 0;
+    transform: translateX(-12px);
+    animation: critIn 0.45s cubic-bezier(0.16,1,0.3,1) forwards;
+  }
+  @keyframes critIn { to { opacity: 1; transform: translateX(0); } }
+  .crit.pass { border-color: rgba(52, 211, 153, 0.3); }
+  .crit .c-state { display: grid; place-items: center; flex-shrink: 0; }
+  .crit.pass .c-state { color: var(--success); }
+  .crit .c-state { color: var(--text-3); }
+  .crit .c-mid { flex: 1; display: flex; align-items: center; gap: 10px; }
+  .crit .c-mid svg { color: var(--text-2); flex-shrink: 0; }
+  .crit .c-label { font-size: 14px; font-weight: 500; }
+  .crit .c-pts {
+    font-family: "Space Mono", monospace;
+    font-size: 13px; font-weight: 700;
+    color: var(--text-3);
+  }
+  .crit.pass .c-pts { color: var(--success); }
+
+  .tips {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-bottom: 28px;
+  }
+  .tips .t-head {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 600;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+  .tips .t-head svg { color: var(--warning); }
+  .tips ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .tips li {
+    display: flex; gap: 10px;
+    font-size: 13.5px; line-height: 1.55; color: var(--text-2);
+  }
+  .tips li::before {
+    content: "";
+    flex-shrink: 0;
+    width: 6px; height: 6px;
+    margin-top: 7px;
+    border-radius: 50%;
+    background: var(--neon);
+    box-shadow: 0 0 8px var(--neon);
+  }
+
+  .result-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  /* Celebration */
+  .confetti {
+    position: fixed;
+    top: -12px;
+    width: 9px; height: 14px;
+    z-index: 50;
+    pointer-events: none;
+    border-radius: 2px;
+    animation: fall linear forwards;
+  }
+  @keyframes fall {
+    to { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+  }
+
+  @media (max-width: 520px) {
+    .wrap { padding: 36px 16px 60px; }
+    .missions { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="header">
+      <div class="eyebrow"><span class="dot"></span> Booth Challenge</div>
+      <h1>Prompt Master <span class="grad">Challenge</span></h1>
+      <p class="subtitle">Write the best prompt. Beat the scorecard. Win the booth.</p>
+    </header>
+
+    <div class="leaderboard">
+      <div class="lb-left">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4zM7 7H4V5a1 1 0 0 1 1-1h2M17 7h3V5a1 1 0 0 0-1-1h-2"/></svg>
+        Today's top score
+      </div>
+      <div id="topscore" class="lb-score empty">—</div>
+    </div>
+
+    <!-- STEP 1 -->
+    <section id="step-pick" class="step active">
+      <div class="step-label"><span class="ring"></span> Step 1 — Pick your mission</div>
+      <div id="missions" class="missions"></div>
+    </section>
+
+    <!-- STEP 2 -->
+    <section id="step-write" class="step">
+      <div class="toolbar">
+        <button id="back" class="btn btn-ghost">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+          Back
+        </button>
+        <div class="step-label" style="margin:0;"><span class="ring"></span> Step 2 — Write your prompt</div>
+      </div>
+
+      <div class="mission-card">
+        <div id="mc-icon" class="mc-icon"></div>
+        <div>
+          <div id="m-title" class="mc-title"></div>
+          <div id="m-goal" class="mc-goal"></div>
+        </div>
+      </div>
+
+      <textarea id="prompt" placeholder="Write the prompt you'd send to an AI to nail this mission..."></textarea>
+
+      <div class="write-foot">
+        <span id="wordcount" class="wordcount">0 words</span>
+        <button id="score" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>
+          Score my prompt
+        </button>
+      </div>
+    </section>
+
+    <!-- STEP 3 -->
+    <section id="step-result" class="step">
+      <div class="result-head">
+        <div class="rh-label">Your prompt score</div>
+        <div id="bigscore" class="bigscore">0<span class="pct">%</span></div>
+        <div id="rank" class="rank"></div>
+      </div>
+
+      <div id="breakdown" class="breakdown"></div>
+
+      <div class="tips">
+        <div class="t-head">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5C17.7 10.2 18 9 18 8a6 6 0 0 0-12 0c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5M9 18h6M10 22h4"/></svg>
+          How to level up
+        </div>
+        <ul id="tiplist"></ul>
+      </div>
+
+      <div class="result-actions">
+        <button id="retry" class="btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8M21 3v5h-5"/></svg>
+          Try again
+        </button>
+        <button id="newmission" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          New mission
+        </button>
+      </div>
+    </section>
+  </div>
+
+<script>
+/* ---------- Icons (inline SVG) ---------- */
+const ICONS = {
+  plane: '<path d="M17.8 19.2 16 11l3.5-3.5c1-1 1.5-2.5 1-3.5-1-.5-2.5 0-3.5 1L13.5 8.5 5 6.5c-.4-.1-.8.1-1 .4l-.3.5c-.2.4-.1.9.3 1.2L8 11l-2 2.5H3.5l-1 1L5 16l1.5 2.5 1-1V15l2.5-2 2.6 4.3c.3.4.8.5 1.2.3l.5-.3c.4-.3.6-.7.5-1.1z"/>',
+  mail: '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
+  code: '<path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/>',
+  image: '<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/>',
+  school: '<path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 2.7 3 6 3s6-2 6-3v-5"/>',
+  chart: '<line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/>',
+  user: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  file: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4M16 13H8M16 17H8M10 9H8"/>',
+  target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+  list: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  sliders: '<line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="2" x2="6" y1="14" y2="14"/><line x1="10" x2="14" y1="8" y2="8"/><line x1="18" x2="22" y1="16" y2="16"/>',
+  eye: '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>',
+  check: '<path d="M21.8 10A10 10 0 1 1 17 3.3"/><path d="m9 11 3 3L22 4"/>',
+  circle: '<circle cx="12" cy="12" r="10"/>'
+};
+function icon(name, size = 20) {
+  return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[name] || '') + '</svg>';
+}
+
+/* ---------- Data ---------- */
+const MISSIONS = [
+  { id: 'travel', icon: 'plane',  title: 'Trip planner',  goal: 'Get an AI to plan a 3-day weekend trip that actually fits a real person.' },
+  { id: 'email',  icon: 'mail',   title: 'Tough email',   goal: 'Make an AI write an email declining a request without burning the relationship.' },
+  { id: 'code',   icon: 'code',   title: 'Debug helper',  goal: 'Get an AI to find and fix a bug in a function you describe.' },
+  { id: 'image',  icon: 'image',  title: 'Image brief',   goal: 'Make an AI generate a poster image that matches a precise visual idea.' },
+  { id: 'learn',  icon: 'school', title: 'Explain it',    goal: 'Get an AI to teach a hard concept to a specific audience.' },
+  { id: 'data',   icon: 'chart',  title: 'Data insight',  goal: 'Make an AI analyze a dataset and surface the one insight that matters.' }
+];
+
+const CRITERIA = [
+  { key: 'role',        label: 'Role / persona',        icon: 'user',    test: t => /\b(you are|act as|as an?|persona|expert|role)\b/i.test(t) },
+  { key: 'context',     label: 'Context & background',  icon: 'file',    test: t => t.split(/\s+/).length >= 25 },
+  { key: 'specific',    label: 'Specific details',      icon: 'target',  test: t => (t.match(/\d/g) || []).length >= 1 || /\b(specifically|exactly|including|such as|e\.g|for example)\b/i.test(t) },
+  { key: 'format',      label: 'Output format',         icon: 'list',    test: t => /\b(format|bullet|list|table|json|markdown|paragraph|step|numbered|tone|word|length|concise)\b/i.test(t) },
+  { key: 'constraints', label: 'Constraints / goals',   icon: 'sliders', test: t => /\b(must|should|avoid|don't|do not|limit|only|budget|deadline|audience|goal|so that)\b/i.test(t) },
+  { key: 'clarity',     label: 'Clarity (no vagueness)', icon: 'eye',    test: t => { const w = t.split(/\s+/).filter(Boolean); const vague = (t.match(/\b(good|nice|stuff|things|something|etc|better|great)\b/gi) || []).length; return w.length >= 15 && vague <= 2; } }
+];
+
+const TIP_MAP = {
+  role: 'Tell the AI who to be — "You are a senior travel agent..."',
+  context: "Add background — who it's for, the situation, what you already tried.",
+  specific: 'Swap vague asks for specifics — names, numbers, dates, examples.',
+  format: 'Say how you want the answer — bullets, a table, tone, word count.',
+  constraints: 'State the rules and the goal — what to avoid, the budget, the deadline.',
+  clarity: 'Cut filler words like "good" or "stuff" — be precise about what you mean.'
+};
+
+let topScore = 0;
+let current = null;
+const $ = id => document.getElementById(id);
+
+/* ---------- Render missions ---------- */
+function renderMissions() {
+  $('missions').innerHTML = MISSIONS.map((m, i) => `
+    <div class="mission" data-id="${m.id}" role="button" tabindex="0" style="animation-delay:${i * 70}ms">
+      <div class="m-icon">${icon(m.icon, 22)}</div>
+      <div class="m-title">${m.title}</div>
+      <div class="m-goal">${m.goal}</div>
+      <div class="m-go">Start mission ${icon('code', 0)}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+    </div>`).join('');
+
+  document.querySelectorAll('.mission').forEach(el => {
+    const go = () => pick(el.dataset.id);
+    el.addEventListener('click', go);
+    el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+    el.addEventListener('pointermove', e => {
+      const r = el.getBoundingClientRect();
+      el.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+      el.style.setProperty('--my', (e.clientY - r.top) + 'px');
+    });
+  });
+}
+
+function show(step) {
+  ['pick', 'write', 'result'].forEach(s => $('step-' + s).classList.toggle('active', s === step));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function pick(id) {
+  current = MISSIONS.find(m => m.id === id);
+  $('m-title').textContent = current.title;
+  $('m-goal').textContent = current.goal;
+  $('mc-icon').innerHTML = icon(current.icon, 22);
+  $('prompt').value = '';
+  $('prompt').classList.remove('error');
+  updateCount();
+  show('write');
+  setTimeout(() => $('prompt').focus(), 320);
+}
+
+function updateCount() {
+  const n = $('prompt').value.trim().split(/\s+/).filter(Boolean).length;
+  $('wordcount').textContent = n + (n === 1 ? ' word' : ' words');
+}
+
+/* ---------- Count-up animation ---------- */
+function animateScore(target) {
+  const el = $('bigscore');
+  const start = performance.now();
+  const dur = 850;
+  function frame(now) {
+    const p = Math.min((now - start) / dur, 1);
+    const eased = 1 - Math.pow(1 - p, 3);
+    const val = Math.round(eased * target);
+    el.innerHTML = val + '<span class="pct">%</span>';
+    if (p < 1) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ---------- Confetti ---------- */
+function celebrate() {
+  const colors = ['#d946ef', '#a855f7', '#22d3ee', '#34d399', '#fbbf24'];
+  for (let i = 0; i < 80; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+    c.style.animationDuration = (2.2 + Math.random() * 1.8) + 's';
+    c.style.animationDelay = (Math.random() * 0.4) + 's';
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 4500);
+  }
+}
+
+/* ---------- Scoring ---------- */
+function scorePrompt() {
+  const t = $('prompt').value.trim();
+  if (t.split(/\s+/).filter(Boolean).length < 3) {
+    $('prompt').classList.add('error');
+    $('wordcount').innerHTML = '<span class="err-hint">Write at least a few words to get scored.</span>';
+    return;
+  }
+  $('prompt').classList.remove('error');
+
+  const results = CRITERIA.map(c => ({ ...c, pass: c.test(t) }));
+  const hits = results.filter(r => r.pass).length;
+  const score = Math.round((hits / CRITERIA.length) * 100);
+  const pts = Math.round(100 / CRITERIA.length);
+
+  const rank = score >= 84 ? { t: 'Prompt Master', c: 'var(--success)' }
+    : score >= 50 ? { t: 'Solid Prompter', c: 'var(--info)' }
+    : { t: 'Warming Up', c: 'var(--warning)' };
+  $('rank').textContent = rank.t;
+  $('rank').style.color = rank.c;
+
+  $('breakdown').innerHTML = results.map((r, i) => `
+    <div class="crit ${r.pass ? 'pass' : ''}" style="animation-delay:${i * 80 + 120}ms">
+      <span class="c-state">${icon(r.pass ? 'check' : 'circle', 20)}</span>
+      <span class="c-mid">${icon(r.icon, 16)}<span class="c-label">${r.label}</span></span>
+      <span class="c-pts">${r.pass ? '+' + pts : '0'}</span>
+    </div>`).join('');
+
+  const missing = results.filter(r => !r.pass);
+  $('tiplist').innerHTML = (missing.length ? missing : [{ key: null }])
+    .map(m => `<li>${missing.length ? TIP_MAP[m.key] : 'Strong prompt — try the same structure on a harder mission.'}</li>`)
+    .join('');
+
+  if (score > topScore) {
+    topScore = score;
+    $('topscore').classList.remove('empty');
+    $('topscore').innerHTML = topScore + '<span class="pct" style="color:var(--text-3)">%</span> · <span class="lb-rank">' + rank.t + '</span>';
+  }
+
+  show('result');
+  animateScore(score);
+  if (score >= 84) celebrate();
+}
+
+/* ---------- Wire up ---------- */
+$('prompt').addEventListener('input', updateCount);
+$('score').addEventListener('click', scorePrompt);
+$('back').addEventListener('click', () => show('pick'));
+$('retry').addEventListener('click', () => show('write'));
+$('newmission').addEventListener('click', () => show('pick'));
+renderMissions();
+</script>
+</body>
+</html>
